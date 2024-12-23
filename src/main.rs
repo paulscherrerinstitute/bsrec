@@ -2,7 +2,7 @@ use std::thread;
 use std::time::Duration;
 use clap::{Arg, Command};
 use ::bsread::*;
-use ::bsread::dispatcher::ChannelDescription;
+use ::bsread::dispatcher::{DispatcherStream, ChannelDescription};
 
 fn on_message(message: &Message, level:u64, size:usize) -> () {
     let print_main_header = level>3;
@@ -17,19 +17,20 @@ struct Context {
     receiver: Receiver,
     level:u64,
     size:usize,
-    debug:bool
+    stream:Option<DispatcherStream>,
+    debug:bool,
 }
 
 impl Context {
 
-    fn new(endpoint: &str, socket_type: SocketType, level: Option<u64>, size: Option<usize>, debug:bool) -> IOResult<Self> {
+    fn new(endpoint: &str, socket_type: SocketType, level: Option<u64>, size: Option<usize>, stream:Option<DispatcherStream>, debug:bool) -> IOResult<Self> {
         if debug {
 
             debug::start_sender(10300, if socket_type == SocketType::PULL {SocketType::PUSH} else {SocketType::PUB}, 100, None, None).expect("Failed to start sender");
         }
         let bsread =  Bsread::new().expect("Failed to open bsread");
         let receiver = bsread.receiver(Some(vec![endpoint]),socket_type).expect("Failed to create receiver");
-        Ok(Self {receiver, level : match level{None => {3} Some(v) => {v}}, size : match size{None => {10}Some(v) => {v}},debug})
+        Ok(Self {receiver, level : match level{None => {3} Some(v) => {v}}, size : match size{None => {10}Some(v) => {v}},stream, debug})
     }
 
     fn start(&mut self, num_messages: Option<u32>, time: Option<i64>, ) -> IOResult<()> {
@@ -210,6 +211,7 @@ fn main(){
             exit!("Either URL (-u, --url) or channel names (-c, --channel) must me defined");
         }
     }
+    let mut stream:Option<DispatcherStream> = None;
     let endpoint = match url {
         None => {
             if debug{
@@ -219,10 +221,16 @@ fn main(){
                 for channel in channels {
                     descriptions.push(ChannelDescription::of(channel.as_str()));
                 }
-                match dispatcher::request_stream(descriptions, None, None, true, false) {
-                    Ok(ds) => ds.get_endpoint().to_owned(), // Clone or take ownership here
+                let ds = dispatcher::request_stream(descriptions, None, None, true, false);
+                match ds{
+                    Ok(ds) => {
+                        let ret = ds.get_endpoint().to_string();
+                        stream = Some(ds);
+                        ret
+                    }
                     Err(e) => exit!("Error requesting stream to Dispatcher: {}", e),
                 }
+
             }
         }
         Some(url) => url.to_string(),
@@ -232,6 +240,6 @@ fn main(){
     }
 
 
-    let mut context = Context::new(endpoint.as_str(), socket_type, level, size, debug).expect("Failed to create context");
+    let mut context = Context::new(endpoint.as_str(), socket_type, level, size, stream, debug).expect("Failed to create context");
     context.start(messages, time);
 }
