@@ -131,9 +131,9 @@ dependencies = [
 
 [[package]]
 name = "bsread"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7fb8dc918966f34077dab4a8d92b5345ac94f616ec8684322cc378569559ae0"
+checksum = "1ead902d236d3cae08986e3ea37b7c9cf1e3eb7e440e0f18119df133f4ae1ca7"
 dependencies = [
  "byteorder",
  "cc",
@@ -154,7 +154,7 @@ dependencies = [
 
 [[package]]
 name = "bsrec"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bsread",
  "clap",
