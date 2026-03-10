@@ -1,9 +1,9 @@
 [package]
 name = "bsrec"
-version = "0.1.1"
-edition = "2021"
+version = "0.2.0"
+edition = "2024"
 
 [dependencies]
-bsread = "0.1.1"
+bsread = {version = "0.2.0", features = ["dispatcher"]}
 env_logger = "0.10"
 clap = "4.5.23"
