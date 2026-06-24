@@ -25,7 +25,6 @@ impl Context {
 
     fn new(endpoint: &str, socket_type: SocketType, level: Option<u64>, size: Option<usize>, stream:Option<DispatcherStream>, debug:bool) -> IOResult<Self> {
         if debug {
-
             debug::start_sender(10300, if socket_type == SocketType::PULL {SocketType::PUSH} else {SocketType::PUB}, 100, None, None).expect("Failed to start sender");
         }
         let bsread =  Bsread::new().expect("Failed to open bsread");
@@ -70,16 +69,16 @@ macro_rules! exit {
 fn main(){
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).try_init();
 
-    let matches = Command::new("BsReceiver")
-        .version("1.0")
-        .author("Alexandre Gobbo <alexandre.gobbo@psi.ch>")
-        .about("Test and print Bsread streams")
+    let matches = Command::new(env!("CARGO_PKG_NAME"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
         .arg(
             Arg::new("Time")
                 .short('t')
                 .long("time")
                 .value_name("TIME")
-                .help("Running time in ms")
+                .help("Running time in ms (0 for indefinite)")
                 .num_args(1) // Expects one value
                 .required(false),
         )
@@ -241,5 +240,5 @@ fn main(){
 
 
     let mut context = Context::new(endpoint.as_str(), socket_type, level, size, stream, debug).expect("Failed to create context");
-    context.start(messages, time);
+    let _ = context.start(messages, time);
 }

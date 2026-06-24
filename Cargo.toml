@@ -1,9 +1,11 @@
 [package]
 name = "bsrec"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
+description = "Utility to test and print BSREAD streams"
+authors = ["Alexandre Gobbo <alexandre.gobbo@psi.ch>"]
 
 [dependencies]
-bsread = {version = "0.2.0", features = ["dispatcher"]}
+bsread = {version = "0.3.0", path = "/Users/gobbo_a/dev/bsread_rust", features = ["dispatcher"]}
 env_logger = "0.10"
 clap = "4.5.23"
