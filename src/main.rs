@@ -25,10 +25,10 @@ impl Context {
 
     fn new(endpoint: &str, socket_type: SocketType, level: Option<u64>, size: Option<usize>, stream:Option<DispatcherStream>, debug:bool) -> IOResult<Self> {
         if debug {
-            debug::start_sender(10300, if socket_type == SocketType::PULL {SocketType::PUSH} else {SocketType::PUB}, 100, None, None).expect("Failed to start sender");
+            debug::start_sender(Transport::Tcp {port:10300, host:None}, if socket_type == SocketType::PULL {SocketType::PUSH} else {SocketType::PUB}, 100, None, None, None).expect("Failed to start sender");
         }
         let bsread =  Bsread::new().expect("Failed to open bsread");
-        let receiver = bsread.receiver(Some(vec![endpoint]),socket_type).expect("Failed to create receiver");
+        let receiver = bsread.receiver(Some(vec![endpoint]),socket_type, ConnectionMode::Shared).expect("Failed to create receiver");
         Ok(Self {receiver, level : match level{None => {3} Some(v) => {v}}, size : match size{None => {10}Some(v) => {v}},stream, debug})
     }
 
@@ -223,7 +223,7 @@ fn main(){
                 let ds = dispatcher::request_stream(descriptions, None, None, true, false);
                 match ds{
                     Ok(ds) => {
-                        let ret = ds.get_endpoint().to_string();
+                        let ret = ds.endpoint().to_string();
                         stream = Some(ds);
                         ret
                     }
